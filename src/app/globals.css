@@ -1,26 +1,137 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* ==========================================================================
+   Raw palette (approved base colors).
+   Source: docs/portfolio-blueprint.md §3
+   ========================================================================== */
+@theme {
+  --color-charcoal: #101114;
+  --color-ivory: #f7f6f2;
+  --color-electric: #4169e1;
+  --color-cosmic: #080d18;
+
+  /* Layout + type tokens (static) */
+  --container-content: 75rem; /* 1200px content max-width */
+
+  /* Section vertical rhythm (blueprint §3.4). Exposes the default section
+     spacing utilities: py-section (96px), lg:py-section-lg (128px),
+     xl:py-section-xl (160px). */
+  --spacing-section: 6rem;
+  --spacing-section-lg: 8rem;
+  --spacing-section-xl: 10rem;
+
+  --text-display: clamp(2.5rem, 6vw, 4.5rem);
+  --text-display--line-height: 1.05;
+  --text-display--letter-spacing: -0.02em;
+
+  --text-heading: clamp(1.875rem, 4vw, 3rem);
+  --text-heading--line-height: 1.1;
+  --text-heading--letter-spacing: -0.015em;
+
+  /* Motion */
+  --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
+/* ==========================================================================
+   Semantic, context-swappable tokens (approved values — blueprint §3.1).
+   Dark cinematic is the default (:root). The warm-ivory editorial sections
+   opt in with the `.theme-light` wrapper (see Section component).
+   ========================================================================== */
+:root {
+  --bg: #080d18;
+  --fg: #f7f6f2;
+  --surface: #101114;
+  --muted: #a9b0c0;
+  --border: #293246;
+  --accent: #4169e1;
+  --accent-hover: #3458cc;
+}
+
+.theme-light {
+  --bg: #f7f6f2;
+  --fg: #101114;
+  --surface: #ffffff;
+  --muted: #66645f;
+  --border: #d9d7d0;
+  --accent: #4169e1;
+  --accent-hover: #3458cc;
+}
+
+/* Map semantic tokens to Tailwind utilities (bg-bg, text-fg, text-muted…).
+   `inline` keeps utilities bound to the runtime vars so `.theme-light`
+   swaps the whole context. */
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
+  --color-bg: var(--bg);
+  --color-fg: var(--fg);
+  --color-surface: var(--surface);
+  --color-muted: var(--muted);
+  --color-border: var(--border);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+
+  /* Fonts (approved — blueprint §3.2):
+     font-display → Space Grotesk (headings & display),
+     font-sans → Inter (body & readable content),
+     font-mono → Geist Mono (technical labels only, never global). */
+  --font-display: var(--font-space-grotesk);
+  --font-sans: var(--font-inter);
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+/* ==========================================================================
+   Base layer
+   ========================================================================== */
+@layer base {
+  * {
+    border-color: var(--border);
+  }
+
+  html {
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    background-color: var(--bg);
+    color: var(--fg);
+    font-family: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: var(--font-space-grotesk), ui-sans-serif, system-ui, sans-serif;
+  }
+
+  ::selection {
+    background-color: var(--accent);
+    color: var(--bg);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* ==========================================================================
+   Reduced motion — global safety net. Component-level motion (rocket, 3D
+   carousel, scroll-linked effects) must ALSO honor this in later tasks.
+   ========================================================================== */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

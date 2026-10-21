@@ -1,0 +1,3 @@
+src/components/sections/skills-canvas.tsx(322,30): error TS2554: Expected 4 arguments, but got 3.
+src/components/sections/skills-canvas.tsx(410,30): error TS2554: Expected 4 arguments, but got 3.
+src/components/sections/skills-canvas.tsx(480,30): error TS2304: Cannot find name 'AUTO_ROTATION_SPEED'.
