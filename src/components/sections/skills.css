@@ -1,7 +1,14 @@
-/* Skills carousel — Task 08A (rebuilt to match approved A2 reference).
+/* Skills carousel - Task 08A.
    Horizontal 3D technology carousel: each skill is a six-sided brand-colored
-   3D cube with its logo on every face. CSS 3D transforms only — no 3D library
-   (blueprint §9/§12). */
+   rounded cube with its logo on every face, rendered by the shared Three.js
+   canvas (src/components/sections/skills-canvas.tsx). This stylesheet owns
+   the DOM chrome only: the stage, the label track, and the card labels.
+
+   Layout contract (kept in sync with skills-canvas.tsx):
+   - The camera maps 1 world unit to 1 CSS pixel, and every cube sits on the
+     stage's Z = 0 plane with its centre at the stage's vertical centre.
+   - Each card reserves exactly CUBE_BOX (64px) for the cube; the label is
+     positioned below that box so cube and label share the same centre X. */
 
 .skills-stage {
   position: relative;
@@ -16,177 +23,66 @@
   cursor: grabbing;
 }
 
+/* The WebGL canvas sits behind the label track and owns all pointer
+   interaction (cube dragging). */
+.skills-canvas {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  touch-action: none;
+}
+
+.skills-canvas canvas {
+  display: block;
+}
+
+/* The label track is a DOM layer above the canvas. It does not receive
+   pointer events itself - the canvas below handles the drag gesture - but
+   each label is clickable so a card can still be selected by name. */
 .skills-track {
   position: absolute;
   top: 50%;
   left: 50%;
+  z-index: 2;
   display: flex;
-  align-items: stretch;
-  transform-style: preserve-3d;
+  align-items: flex-start;
+  pointer-events: none;
   will-change: transform;
 }
 
+/* The card reserves the cube's box; the cube itself is drawn by WebGL. */
 .skills-card {
   position: relative;
   flex: 0 0 auto;
-  transform-origin: 50% 55%;
-  transform-style: preserve-3d;
-  will-change: transform, opacity;
+  height: 72px;
 }
 
-
-
-@media (prefers-reduced-motion: reduce) {
-  .skills-track,
-  .skills-card,
-  .skills-cube {
-    transition: none !important;
-  }
-}
-
-/* Manual-rotation wrapper — owns the user's drag/keyboard orientation
-   via inline transform set by the component. Holds .skills-cube__spin
-   (idle animation) inside it; the two transforms live on separate
-   nested elements so neither overwrites the other. */
-.skills-cube {
-  position: relative;
-  width: 64px;
-  height: 64px;
-  transform-style: preserve-3d;
-  touch-action: none;
-}
-
-.skills-cube * {
-  touch-action: none;
-}
-
-/* Idle-spin wrapper — owns the continuous slow 360° CSS animation.
-   Rotates the complete cube around its vertical axis with a slight X tilt
-   so front, side, and top faces are all visibly exposed over a full revolution.
-   Each cube spins at its own duration/phase so the carousel feels alive.
-   This element is the outermost transform layer; manual drag transforms live
-   on .skills-cube below it so inline drag transforms cannot overwrite the
-   idle animation transform. */
-.skills-cube__spin {
-  position: relative;
-  display: block;
-  width: 100%;
-  height: 100%;
-  transform-style: preserve-3d;
-  will-change: transform;
-  animation: skills-cube-spin var(--spin-duration, 10s)
-    var(--spin-easing, linear) infinite;
-  animation-delay: var(--spin-delay, 0s);
-}
-
-/* Pause idle spin on hover or while a drag/post-release pause is active. */
-.skills-cube:hover .skills-cube__spin,
-.skills-cube[data-spin-paused='true'] .skills-cube__spin {
-  animation-play-state: paused;
-}
-
-@keyframes skills-cube-spin {
-  0% {
-    transform: rotateX(var(--spin-rx, 22deg)) rotateY(0deg);
-  }
-  100% {
-    transform: rotateX(var(--spin-rx, 22deg)) rotateY(360deg);
-  }
-}
-
-.skills-cube__face {
+/* Only the label itself is interactive (the cube above it is WebGL). */
+.skills-card__label {
   position: absolute;
-  top: 50%;
+  top: 100%;
   left: 50%;
-  width: 66px;
-  height: 66px;
-  margin-top: -33px;
-  margin-left: -33px;
+  transform: translateX(-50%);
+  margin-top: 14px;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  /* Hidden back faces make the cube read as a solid object — faces pointing
-     away from the viewer disappear instead of showing their inside. */
-  backface-visibility: hidden;
-  box-sizing: border-box;
-  /* Rounded dice corners — faces overlap slightly at seams (66px on a 64px
-     cube = 1px overlap per side) so no background shows through. The solid
-     body below matches this radius and fills any micro-gaps at intersections. */
-  border-radius: 10px;
-  overflow: hidden;
-}
-
-.skills-cube__face--front  { transform: translateZ(32px); }
-.skills-cube__face--back   { transform: rotateY(180deg) translateZ(32px); }
-.skills-cube__face--right  { transform: rotateY(90deg) translateZ(32px); }
-.skills-cube__face--left   { transform: rotateY(-90deg) translateZ(32px); }
-.skills-cube__face--top    { transform: rotateX(90deg) translateZ(32px); }
-.skills-cube__face--bottom { transform: rotateX(-90deg) translateZ(32px); }
-
-/* Subtle edge definition — soft inset hairline, no bright white seams. */
-.skills-cube__face--front {
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.10);
-}
-.skills-cube__face--back {
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06);
-}
-.skills-cube__face--right {
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
-}
-.skills-cube__face--left {
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
-}
-.skills-cube__face--top {
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.14);
-}
-.skills-cube__face--bottom {
-  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.12);
-}
-
-/* Solid core — fills cube volume so adjacent faces meet convincingly.
-   Larger than faces (2px overhang per side) so it peeks through at seams
-   and outer edges, creating the rounded dice silhouette. Sits behind faces
-   (translateZ(-2px)) so faces occlude it — no z-index needed in 3D context. */
-.skills-cube__body {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 68px;
-  height: 68px;
-  margin-top: -34px;
-  margin-left: -34px;
-  border-radius: 10px;
-  /* Brand color applied via inline style on the TSX element. */
-  transform: translateZ(-2px);
-}
-
-/* Slim illuminated platform beneath the cube. */
-.skills-cube__shadow {
-  position: absolute;
-  left: 50%;
-  top: 46px;
-  width: 40px;
-  height: 6px;
-  transform: translate(-50%, -50%);
-  background: rgba(0, 0, 0, 0.40);
-  filter: blur(5px);
-  border-radius: 50%;
-  opacity: 0.6;
+  gap: 4px;
+  white-space: nowrap;
+  pointer-events: auto;
+  cursor: pointer;
 }
 
 /* Visible focus indicator for keyboard control of each cube. */
-.skills-card:focus-visible {
+.skills-card__label:focus-visible {
   outline: 2px solid var(--accent, #4169E1);
   outline-offset: 3px;
-  z-index: 10;
+  border-radius: 8px;
 }
 
 @media (prefers-reduced-motion: reduce) {
   .skills-track,
-  .skills-card,
-  .skills-cube,
-  .skills-cube__spin {
+  .skills-card {
     transition: none !important;
-    animation: none !important;
   }
 }

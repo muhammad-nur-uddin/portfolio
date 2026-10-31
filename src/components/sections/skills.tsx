@@ -1,10 +1,12 @@
 // Section 04 — Technical Skills — Task 08A (rebuilt to match approved A2).
 //
-// Horizontal 3D technology carousel: a row of front-facing cards, each icon
-// rendered as a six-sided brand-colored 3D cube with its logo on every face.
-// CSS 3D transforms + plain React only
-// (no 3D library, per blueprint §9/§12). Recognizable brand logos and names,
-// no fake metrics or proficiency percentages.
+// Horizontal 3D technology carousel: a row of cards, each icon rendered as a
+// six-sided brand-colored rounded cube with its logo on every face. The cubes
+// are drawn by a shared Three.js renderer (./skills-canvas.tsx) using
+// RoundedBoxGeometry; this component owns the DOM chrome (label track,
+// filters, navigation, progress) and the carousel's layout state.
+// Recognizable brand logos and names, no fake metrics or proficiency
+// percentages.
 //
 // Interactions:
 //  - Category filter tabs (All / Frontend / Backend / Database / Tools & DevOps)
@@ -16,10 +18,12 @@
 //  - Stage clips overflow so there is no horizontal page scroll
 //
 // Geometry note: the track is translated horizontally to center the active
-// card. Each card is given a small rotateY (max 12deg) plus depth/scale based
-// on its distance from the active index — a shallow arc. Cards are never
-// rotated edge-on, so logos and labels always stay readable (this replaces an
-// earlier cylindrical-ring interpretation that collapsed into a thin strip).
+// card. Each card is given a small rotateY (max 12deg) plus a scale falloff
+// based on its distance from the active index — a shallow arc. The same
+// transform is applied to the WebGL cube, so label and cube stay aligned.
+// Cards are never rotated edge-on, so logos and labels always stay readable
+// (this replaces an earlier cylindrical-ring interpretation that collapsed
+// into a thin strip).
 
 "use client";
 
@@ -47,7 +51,6 @@ const PITCH = CARD_W + GAP;
 
 // Shallow-arc 3D tuning (kept modest so cards never go edge-on).
 const MAX_TILT = 12; // deg — cap for per-card rotateY
-const DEPTH = 26; // px of translateZ per step away from active
 const SCALE_STEP = 0.045; // scale falloff per step
 const OPACITY_STEP = 0.16; // opacity falloff per step
 const MIN_SCALE = 0.82;
@@ -66,9 +69,9 @@ function clamp(value: number, min: number, max: number): number {
 
 export function Skills() {
   const [category, setCategory] = useState<SkillCategory>("all");
-  const [activeIndex, setActiveIndex] = useState(0);
+  const [activeIndex, setActiveIndex] = useState(2);
   // Continuous position (allows sub-card drag), snapped to an integer on release.
-  const [position, setPosition] = useState(0);
+  const [position, setPosition] = useState(2);
   const [dragging, setDragging] = useState(false);
   // Per-icon 3D rotation angles (degrees), keyed by skill id. Preserved on release.
   const [iconRotations, setIconRotations] = useState<Record<
@@ -128,8 +131,10 @@ export function Skills() {
 
   const onCategoryChange = useCallback((key: SkillCategory) => {
     setCategory(key);
-    setActiveIndex(0);
-    setPosition(0);
+    const nextCount = skillsByCategory(key).length;
+    const center = Math.min(2, Math.floor((nextCount - 1) / 2));
+    setActiveIndex(center);
+    setPosition(center);
   }, []);
 
   // --- Pointer dragging (covers mouse + touch via pointer events) ---
@@ -225,15 +230,16 @@ export function Skills() {
   const activeSkill = filtered[activeIndex];
 
   // Shallow-arc transform for a card given its distance from the active position.
+  // This MUST mirror the pivot transform applied to the WebGL cube in
+  // skills-canvas.tsx (same X pitch, same scale falloff, same tilt) so the
+  // label always sits directly under its cube. The cube itself carries the
+  // perspective/depth, so the DOM layer stays flat.
   const cardTransform = (delta: number) => {
     const abs = Math.abs(delta);
     const tilt = clamp(delta, -1, 1) * MAX_TILT;
-    const z = -Math.min(abs, 2) * DEPTH;
     const scale = clamp(1 - abs * SCALE_STEP, MIN_SCALE, 1);
     return {
-      transform: `translateZ(${z.toFixed(1)}px) rotateY(${tilt.toFixed(
-        1,
-      )}deg) scale(${scale.toFixed(3)})`,
+      transform: `rotateY(${tilt.toFixed(1)}deg) scale(${scale.toFixed(3)})`,
       opacity: clamp(1 - abs * OPACITY_STEP, 0, 1),
       transition: dragging || reducedMotion ? "none" : undefined,
     } as React.CSSProperties;
@@ -354,7 +360,7 @@ export function Skills() {
                 }}
               >
                 {filtered.map((skill, index) => {
-                                    const delta = index - position;
+                  const delta = index - position;
                   const abs = Math.abs(delta);
                   const isActive = index === activeIndex;
                   const hidden = abs > maxFitDelta;
@@ -362,46 +368,49 @@ export function Skills() {
                   if (hidden) style.opacity = 0;
 
                   return (
-                    <button
+                    <div
                       key={skill.id}
-                      type="button"
-                      aria-label={skill.name}
-                      aria-current={isActive}
-                      aria-describedby="skill-rotation-instructions"
-                      onClick={() => goTo(index)}
-                      onKeyDown={(e) => {
-                        if (e.key === "r" || e.key === "R") {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          resetIconRotation(skill.id);
-                          return;
-                        }
-                        if (e.key === "ArrowUp" || e.key === "ArrowDown" || e.key === "ArrowLeft" || e.key === "ArrowRight") {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          const step = 8;
-                          const cur = iconRotations[skill.id] ?? { rx: 0, ry: 0 };
-                          let nrx = cur.rx;
-                          let nry = cur.ry;
-                          if (e.key === "ArrowUp") nrx = clamp(cur.rx - step, -ICON_ROTATION_CAP, ICON_ROTATION_CAP);
-                          if (e.key === "ArrowDown") nrx = clamp(cur.rx + step, -ICON_ROTATION_CAP, ICON_ROTATION_CAP);
-                          if (e.key === "ArrowLeft") nry = clamp(cur.ry - step, -ICON_ROTATION_CAP, ICON_ROTATION_CAP);
-                          if (e.key === "ArrowRight") nry = clamp(cur.ry + step, -ICON_ROTATION_CAP, ICON_ROTATION_CAP);
-                          setIconRotations((prev) => ({ ...prev, [skill.id]: { rx: nrx, ry: nry } }));
-                        }
-                      }}
-                      className="skills-card group flex flex-col items-center justify-start px-3 pt-6 pb-5 outline-none focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-2"
+                      className="skills-card"
                       data-active={isActive}
+                      aria-hidden={hidden}
                       style={{
                         ...style,
                         width: CARD_W,
                         marginRight: index === filtered.length - 1 ? 0 : GAP,
-                        pointerEvents: hidden ? "none" : "auto",
                         visibility: hidden ? "hidden" : "visible",
                       }}
                     >
-                      {/* Label: name + category, always readable (never edge-on). */}
-                      <span className="relative z-10 mt-4 flex flex-col items-center gap-1">
+                      {/* Label: name + category, always readable (never edge-on).
+                          The cube above it is drawn by the WebGL canvas. */}
+                      <button
+                        type="button"
+                        className="skills-card__label"
+                        aria-label={skill.name}
+                        aria-current={isActive}
+                        aria-describedby="skill-rotation-instructions"
+                        onClick={() => goTo(index)}
+                        onKeyDown={(e) => {
+                          if (e.key === "r" || e.key === "R") {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            resetIconRotation(skill.id);
+                            return;
+                          }
+                          if (e.key === "ArrowUp" || e.key === "ArrowDown" || e.key === "ArrowLeft" || e.key === "ArrowRight") {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            const step = 8;
+                            const cur = iconRotations[skill.id] ?? { rx: 0, ry: 0 };
+                            let nrx = cur.rx;
+                            let nry = cur.ry;
+                            if (e.key === "ArrowUp") nrx = clamp(cur.rx - step, -ICON_ROTATION_CAP, ICON_ROTATION_CAP);
+                            if (e.key === "ArrowDown") nrx = clamp(cur.rx + step, -ICON_ROTATION_CAP, ICON_ROTATION_CAP);
+                            if (e.key === "ArrowLeft") nry = clamp(cur.ry - step, -ICON_ROTATION_CAP, ICON_ROTATION_CAP);
+                            if (e.key === "ArrowRight") nry = clamp(cur.ry + step, -ICON_ROTATION_CAP, ICON_ROTATION_CAP);
+                            setIconRotations((prev) => ({ ...prev, [skill.id]: { rx: nrx, ry: nry } }));
+                          }
+                        }}
+                      >
                         <span
                           className="font-display text-[0.95rem] leading-tight tracking-tight transition-colors duration-300"
                           style={{ color: isActive ? "var(--fg)" : "var(--muted)" }}
@@ -411,15 +420,15 @@ export function Skills() {
                         <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-muted/80">
                           {skill.category.replace("-", " & ")}
                         </span>
-                      </span>
-                    </button>
+                      </button>
+                    </div>
                   );
                 })}
               </div>
             </div>
 
             {/* Progress indicator + drag hint, close to the stage (per A2). */}
-            <div className="mt-6 flex flex-col items-center gap-3">
+            <div className="mt-4 flex flex-col items-center gap-3">
               <div
                 className="h-1 w-40 overflow-hidden rounded-full bg-border/60 sm:w-56"
                 role="progressbar"
