@@ -8,3 +8,9 @@ export const SITE_DESCRIPTION =
 export const SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 export const COPYRIGHT_YEAR = 2026;
+
+// Verified contact details (Section 05 — Contact).
+export const CONTACT_EMAIL = "muhammadnur.codes@gmail.com";
+export const CONTACT_GITHUB_URL = "https://github.com/muhammad-nur-uddin";
+export const CONTACT_LINKEDIN_URL =
+  "https://www.linkedin.com/in/muhammad-nur-uddin";

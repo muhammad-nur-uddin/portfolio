@@ -108,6 +108,27 @@ for (const [key, icon] of Object.entries(SIMPLE_ICONS)) {
   };
 }
 
+// TypeScript — Preserve original brand appearance
+PATHS.typescript = {
+  label: "TypeScript",
+  viewBox: "0 0 24 24",
+  aspectRatio: 1,
+  sizeRatio: 0.82,
+  mode: "original",
+  markup: `
+    <rect
+      width="24"
+      height="24"
+      rx="1.125"
+      fill="#FFFFFF"
+    />
+    <path
+      d="${siTypescript.path}"
+      fill="#3178C6"
+    />
+  `,
+};
+
 // CSS3: preserve the original blue brand mark.
 PATHS.css3 = {
   label: "CSS3",
@@ -128,6 +149,20 @@ PATHS.css3 = {
       fill="#FFFFFF"
       transform="scale(0.2)"
       d="m544 96l-64 368l-223.3 80L64 464l19.6-94.8h82l-8 40.6L274 454.2l134.1-44.4l18.8-97.1H93.5l16-82h333.7l10.5-52.7H120.3l16.3-82z"
+    />
+  `,
+};
+
+// React — Original Brand Color
+PATHS.react = {
+  label: "React",
+  viewBox: "0 0 24 24",
+  aspectRatio: 1,
+  mode: "original",
+  markup: `
+    <path
+      d="${siReact.path}"
+      fill="#FFFFFF"
     />
   `,
 };
@@ -157,6 +192,65 @@ PATHS.aws = {
   `,
 };
 
+// Postman — Original Brand Color
+// PATHS.postman = {
+//   label: "Postman",
+//   viewBox: "0 0 24 24",
+//   aspectRatio: 1,
+//   mode: "original",
+//   svg: `
+//     <path
+//       d="${siPostman.path}"
+//       fill="#FF6C37"
+//       fill-rule="evenodd"
+//     />
+//   `,
+// };
+PATHS.postman = {
+  label: "Postman",
+  viewBox: "0 0 24 24",
+  aspectRatio: 1,
+  mode: "original",
+  markup: `
+    <defs>
+      <mask
+        id="postman-white-mark"
+        maskUnits="userSpaceOnUse"
+        x="0"
+        y="0"
+        width="24"
+        height="24"
+      >
+        <circle
+          cx="12"
+          cy="12"
+          r="12"
+          fill="#FFFFFF"
+        />
+        <path
+          d="${siPostman.path}"
+          fill="#000000"
+        />
+      </mask>
+    </defs>
+
+    <!-- Orange background -->
+    <circle
+      cx="12"
+      cy="12"
+      r="12"
+      fill="#FF6C37"
+    />
+
+    <!-- White negative-space symbol -->
+    <rect
+      width="24"
+      height="24"
+      fill="#FFFFFF"
+      mask="url(#postman-white-mark)"
+    />
+  `,
+};
 // Original custom concept pictograms. All are stroked, so their thin geometry
 // is preserved by the canvas alpha-mask recolouring step rather than becoming
 // filled blobs. These are deliberately custom concepts, not official brands.
@@ -169,14 +263,34 @@ PATHS.sql = {
     <g
       fill="none"
       stroke="currentColor"
-      stroke-width="4.5"
+      stroke-width="4.3"
       stroke-linecap="round"
       stroke-linejoin="round"
     >
-      <ellipse cx="32" cy="12" rx="19" ry="7" />
-      <path d="M13 12v36c0 4 8.5 7 19 7s19-3 19-7V12" />
-      <path d="M13 24c0 4 8.5 7 19 7s19-3 19-7" />
-      <path d="M13 36c0 4 8.5 7 19 7s19-3 19-7" />
+      <!-- Database top -->
+      <ellipse cx="32" cy="11" rx="22" ry="8" />
+
+      <!-- Database body -->
+      <path d="
+        M10 11
+        V49
+        C10 53.4 19.8 57 32 57
+        C44.2 57 54 53.4 54 49
+        V11
+      " />
+
+      <!-- Database layers -->
+      <path d="
+        M10 24
+        C10 28.4 19.8 32 32 32
+        C44.2 32 54 28.4 54 24
+      " />
+
+      <path d="
+        M10 38
+        C10 42.4 19.8 46 32 46
+        C44.2 46 54 42.4 54 38
+      " />
     </g>
   `,
 };
@@ -334,7 +448,7 @@ PATHS.langchain = {
 
 PATHS.rag = {
   label: "RAG",
-  viewBox: "0 0 64 64",
+  viewBox: "0 0 128 128",
   aspectRatio: 1,
   sizeRatio: 0.95,
   mode: "monochrome",
@@ -346,41 +460,66 @@ PATHS.rag = {
       stroke-linecap="round"
       stroke-linejoin="round"
     >
-      <!-- Clean document -->
+      <!-- Microchip body -->
+      <rect x="32" y="25" width="64" height="49" rx="10" />
+
+      <!-- Top processor pins -->
       <path d="
-        M10 8
-        H29
-        L37 16
-        V42
-        H10
-        Z
+        M43 25 V13
+        M54 25 V13
+        M65 25 V13
+        M76 25 V13
+        M87 25 V13
       " />
 
-      <!-- Folded corner -->
-      <path d="M29 8 V16 H37" />
-
-      <!-- Document text lines -->
+      <!-- Left processor pins -->
       <path d="
-        M15 25 H30
-        M15 32 H26
+        M32 37 H20
+        M32 46 H20
+        M32 55 H20
+        M32 64 H20
       " />
 
-      <!-- Refined magnifying glass -->
-      <circle
-        cx="43"
-        cy="43"
-        r="8.5"
-      />
+      <!-- Right processor pins -->
+      <path d="
+        M96 37 H108
+        M96 46 H108
+        M96 55 H108
+        M96 64 H108
+      " />
 
-      <!-- Magnifying glass handle -->
-      <path d="M49 49 L56.5 56.5" />
+      <!-- Knowledge circuit connections -->
+      <path d="
+        M46 74 V79 Q46 85 40 85 H23 V92
+        M64 74 V92
+        M82 74 V79 Q82 85 88 85 H105 V92
+      " />
 
-      <!-- Plus symbol -->
-      <path
-        d="M43 39.5 V46.5 M39.5 43 H46.5"
-        stroke-width="2.7"
-      />
+      <!-- Left document -->
+      <rect x="8" y="92" width="30" height="27" rx="4" />
+      <path d="M14 101 H32 M14 108 H32 M14 114 H26" />
+
+      <!-- Center document -->
+      <rect x="49" y="92" width="30" height="27" rx="4" />
+      <path d="M55 101 H73 M55 108 H73 M55 114 H67" />
+
+      <!-- Right document -->
+      <rect x="90" y="92" width="30" height="27" rx="4" />
+      <path d="M96 101 H114 M96 108 H114 M96 114 H108" />
     </g>
+
+    <!-- RAG processor label -->
+    <text
+      x="64"
+      y="56"
+      text-anchor="middle"
+      dominant-baseline="middle"
+      font-family="Arial, Helvetica, sans-serif"
+      font-size="19"
+      font-weight="700"
+      letter-spacing="0.5"
+      fill="currentColor"
+    >RAG</text>
   `,
 };
 
@@ -388,16 +527,102 @@ PATHS.vectordb = {
   label: "Vector DB",
   viewBox: "0 0 64 64",
   aspectRatio: 1,
+  sizeRatio: 0.88,
   mode: "monochrome",
-  markup: `<g fill="none" stroke="currentColor" stroke-width="4.2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="19" cy="13" rx="13" ry="6"/><path d="M6 13v32c0 3.5 5.8 6 13 6s13-2.5 13-6V13M6 24c0 3.5 5.8 6 13 6s13-2.5 13-6M6 35c0 3.5 5.8 6 13 6s13-2.5 13-6"/><path d="m32 29 12-10 9 12-9 14-12-10m12-16v30m-12-18h21"/><circle cx="44" cy="19" r="3"/><circle cx="53" cy="31" r="3"/><circle cx="44" cy="45" r="3"/></g>`,
+  markup: `
+    <g
+      fill="none"
+      stroke="currentColor"
+      stroke-width="3.4"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    >
+      <!-- Database cylinder -->
+      <ellipse cx="19" cy="13" rx="12" ry="5.5" />
+
+      <path d="
+        M7 13 V47
+        C7 50 12.4 53 19 53
+        C25.6 53 31 50 31 47
+        V13
+      " />
+
+      <!-- Database layers -->
+      <path d="
+        M7 24
+        C7 27 12.4 30 19 30
+        C25.6 30 31 27 31 24
+      " />
+
+      <path d="
+        M7 35
+        C7 38 12.4 41 19 41
+        C25.6 41 31 38 31 35
+      " />
+
+      <!-- Vector branching connections -->
+      <path d="
+        M31 32
+        H35
+        L46 21
+
+        M35 32
+        H49
+
+        M35 32
+        L46 43
+      " />
+
+      <!-- Vector nodes -->
+      <circle cx="49" cy="18" r="4" />
+      <circle cx="53" cy="32" r="4" />
+      <circle cx="49" cy="46" r="4" />
+    </g>
+  `,
 };
 
 PATHS.systemdesign = {
   label: "System Design",
   viewBox: "0 0 64 64",
   aspectRatio: 1,
+  sizeRatio: 0.82,
   mode: "monochrome",
-  markup: `<g fill="none" stroke="currentColor" stroke-width="4.2" stroke-linecap="round" stroke-linejoin="round"><rect x="22" y="5" width="20" height="13" rx="2.5"/><path d="M32 18v9M11 27h42M11 27v8m21-8v8m21-8v8"/><rect x="3" y="35" width="16" height="20" rx="2.5"/><rect x="24" y="35" width="16" height="20" rx="2.5"/><rect x="45" y="35" width="16" height="20" rx="2.5"/><path d="M8 42h6m-6 5h6M29 42h6m-6 5h6M50 42h6m-6 5h6"/></g>`,
+  markup: `
+    <g
+      fill="none"
+      stroke="currentColor"
+      stroke-width="3.2"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    >
+      <!-- Main Server -->
+      <rect x="23" y="6" width="18" height="13" rx="2.5" />
+
+      <path d="M27 11H33 M27 15H33" />
+      <circle cx="36" cy="11" r="1" fill="currentColor" stroke="none" />
+
+      <!-- Main Connection -->
+      <path d="
+        M32 19V28
+        M11 28H53
+        M11 28V36
+        M32 28V36
+        M53 28V36
+      " />
+
+      <!-- Left Component -->
+      <rect x="3" y="36" width="16" height="19" rx="2.5" />
+      <path d="M7 43H15 M7 48H15" />
+
+      <!-- Center Component -->
+      <rect x="24" y="36" width="16" height="19" rx="2.5" />
+      <path d="M28 43H36 M28 48H36" />
+
+      <!-- Right Component -->
+      <rect x="45" y="36" width="16" height="19" rx="2.5" />
+      <path d="M49 43H57 M49 48H57" />
+    </g>
+  `,
 };
 
 /** Throws with a useful list instead of silently rendering missing logos. */
