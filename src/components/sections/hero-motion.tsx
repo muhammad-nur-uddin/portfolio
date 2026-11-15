@@ -5,10 +5,9 @@ import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 
 /**
- * Client motion layer for the Hero (Task 05A-3). The Hero stays
- * server-rendered; GSAP is scoped to this subtree via `data-hero` hooks.
- * Under prefers-reduced-motion (or without JS) everything renders in its
- * final, fully visible state. useGSAP() reverts every tween on unmount.
+ * Client motion layer for the Hero. GSAP animates the copy and CTA only.
+ * The Energy Flow controls its own fallback-to-WebGL readiness transition,
+ * so the visual is never hidden during the initial page paint.
  */
 export function HeroMotion({ children }: { children: ReactNode }) {
   const scope = useRef<HTMLDivElement>(null);
@@ -18,8 +17,6 @@ export function HeroMotion({ children }: { children: ReactNode }) {
       const mm = gsap.matchMedia();
 
       mm.add("(prefers-reduced-motion: no-preference)", () => {
-        // Brief staggered entrance. from() keeps the static first paint
-        // fully visible; useLayoutEffect applies it before the browser paints.
         gsap
           .timeline({ defaults: { ease: "power2.out" } })
           .from("[data-hero='eyebrow']", { y: 12, opacity: 0, duration: 0.45 })
@@ -33,13 +30,14 @@ export function HeroMotion({ children }: { children: ReactNode }) {
             { y: 12, opacity: 0, duration: 0.45 },
             "-=0.32",
           )
-          .from("[data-hero='cta']", { y: 10, opacity: 0, duration: 0.45 }, "-=0.3")
-          .from("[data-hero='visual']", { opacity: 0, duration: 0.9 }, 0.1);
+          .from(
+            "[data-hero='cta']",
+            { y: 10, opacity: 0, duration: 0.45 },
+            "-=0.3",
+          );
 
-        // Ambient motion inside the visual layer (ribbon drift, particle
-        // twinkle, fold highlights) is owned by the Ghost Fibers shader
-        // (HeroVisual → ghost-fibers.tsx). GSAP handles only the entrance
-        // reveal; no competing ambient animation is layered over the shader.
+        // The visual is intentionally not animated here. HeroVisual keeps a
+        // polished fallback visible until the first WebGL frame is ready.
       });
     },
     { scope },

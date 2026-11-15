@@ -1,0 +1,7 @@
+test
+line3
+single quote string with "double quote" inside
+one
+two
+alpha
+beta
